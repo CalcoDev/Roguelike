@@ -1,0 +1,8 @@
+[gd_scene load_steps=3 format=3 uid="uid://bx0lp1osowbxd"]
+
+[ext_resource type="Script" path="res://scripts/Managers/Game.cs" id="1_ek415"]
+[ext_resource type="PackedScene" uid="uid://di4h0qxb1er6w" path="res://scenes/Managers/GameplayWrapper.tscn" id="2_rlkq0"]
+
+[node name="Game" type="Node"]
+script = ExtResource("1_ek415")
+_gameplayWrapperScene = ExtResource("2_rlkq0")
