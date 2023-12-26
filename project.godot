@@ -26,3 +26,7 @@ window/size/viewport_height=720
 [dotnet]
 
 project/assembly_name="Roguelike"
+
+[editor_plugins]
+
+enabled=PackedStringArray("res://addons/calcopods_viewports/plugin.cfg")

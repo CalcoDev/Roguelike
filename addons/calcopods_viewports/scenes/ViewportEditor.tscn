@@ -1,0 +1,62 @@
+[gd_scene load_steps=2 format=3 uid="uid://c4xjxcnledptb"]
+
+[ext_resource type="Script" path="res://addons/calcopods_viewports/scripts/ViewportEditor.cs" id="1_3a2xn"]
+
+[node name="ViewportEditor" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_3a2xn")
+
+[node name="MarginContainer" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 8
+
+[node name="PanelContainer" type="PanelContainer" parent="MarginContainer"]
+layout_mode = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer/PanelContainer"]
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+
+[node name="PathInput" type="LineEdit" parent="MarginContainer/PanelContainer/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+
+[node name="SelectedLabel" type="Label" parent="MarginContainer/PanelContainer/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "asdasd"
+
+[node name="MenuBar" type="MenuBar" parent="MarginContainer/PanelContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+
+[node name="SelectMenu" type="PopupMenu" parent="MarginContainer/PanelContainer/VBoxContainer/MenuBar"]
+unique_name_in_owner = true
+title = "sample_title"
+item_count = 3
+item_0/text = "Item 1"
+item_0/id = 0
+item_1/text = "Item 2"
+item_1/id = 1
+item_2/text = "asdasdads"
+item_2/id = 2
+
+[node name="ApplyBtn" type="Button" parent="MarginContainer/PanelContainer/VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Do settings"

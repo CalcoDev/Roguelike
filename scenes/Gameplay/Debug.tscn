@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://dk2ka1k0kvw72"]
 
-[node name="Debug" type="Node2D" groups=["fullres_scenes"]]
+[node name="Debug" type="Node2D"]
 
 [node name="Camera2D" type="Camera2D" parent="."]
 position = Vector2(160, 90)

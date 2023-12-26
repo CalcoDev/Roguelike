@@ -1,4 +1,5 @@
 
+using CalcopodsViewports;
 using Godot;
 
 namespace Roguelike.Managers;
@@ -7,6 +8,9 @@ public partial class Game : Node
 {
     [ExportGroup("Resources")]
     [Export] private PackedScene _gameplayWrapperScene;
+
+    [ExportGroup("Viewports")]
+    [Export] private ViewportSettings _viewportSettings;
 
     // Things
     private GameplayWrapper _gameplayWrapper;
@@ -23,6 +27,9 @@ public partial class Game : Node
 	}
 
     // Public Interface
+    public ViewportSettings ViewportSettings => _viewportSettings;
+    
+    // Public Methods
     public void SwitchScene(PackedScene scene)
     {
         _gameplayWrapper.SwitchScene(scene);
