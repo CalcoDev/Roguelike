@@ -22,12 +22,18 @@ sources/0 = SubResource("TileSetAtlasSource_h6xpa")
 
 [node name="MapGenerator" type="Node" parent="." node_paths=PackedStringArray("_tilemap")]
 script = ExtResource("1_lhso4")
-_lacunarity = 6.0
-_octaves = 2
-_scale = 0.5
-_edgeFalloff = 5.0
-_mapWidth = 80
-_mapHeight = 40
+_mapWidth = 100
+_mapHeight = 100
+_minMapLandPercentage = 0.025
+_lacunarity = 4.0
+_octaves = 4
+_scale = 1.0
+_applyFalloff = true
+_edgeFalloff = 2.0
+_sandHeight = 0.53
+_grassHeight = 0.55
+_applyCellularAutomata = true
+_minLiveNeighbourCount = 3
 _tilemap = NodePath("../TileMap")
 
 [node name="TileMap" type="TileMap" parent="."]
