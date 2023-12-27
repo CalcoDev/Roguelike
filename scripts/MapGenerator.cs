@@ -1,9 +1,11 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection.Metadata.Ecma335;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Xml;
+using System.Xml.Schema;
 using Godot;
 using Godot.NativeInterop;
 
@@ -50,6 +52,8 @@ public partial class MapGenerator : Node
 	[ExportGroup("Falloff Settings")]
 	[Export] private bool _applyFalloff;
 	[Export] private float _edgeFalloff;
+	[Export] private bool _circularFalloff;
+	[Export] private float _circularFalloffRadius;
 	
 	[ExportGroup("Heightmap Settings")]
 	[Export] private float _sandHeight;
@@ -84,18 +88,9 @@ public partial class MapGenerator : Node
 
     public void Generate()
 	{
-        _noise = new FastNoiseLite
-        {
-            NoiseType = FastNoiseLite.NoiseTypeEnum.Perlin,
-            FractalLacunarity = _lacunarity,
-            FractalOctaves = _octaves,
-            FractalType = FastNoiseLite.FractalTypeEnum.Fbm,
-            Seed = _seed
-        };
-
-		// GenerateBasePerlin();
+		GenerateBasePerlin();
 		// GenerateBaseRandomWalk();
-		GenerateBaseDLA();
+		// GenerateBaseDLA();
 
 		// Split in regions and determine if and where to place
 		// marsh and stone
@@ -122,17 +117,27 @@ public partial class MapGenerator : Node
 
 	private void GenerateBasePerlin()
 	{
+        _noise = new FastNoiseLite
+        {
+            NoiseType = FastNoiseLite.NoiseTypeEnum.Simplex,
+            FractalLacunarity = _lacunarity,
+            FractalOctaves = _octaves,
+            FractalType = FastNoiseLite.FractalTypeEnum.Fbm,
+            Seed = _seed
+        };
+		
 		ComputeNoiseMap();
 		if (_applyFalloff)
 			ApplyFalloffMap();
 		ComputeMap();
 		// TODO(calco): Probably apply some smart stuff, for now regenerate with diff seed
-		if (_mapLandPercentage < _minMapLandPercentage)
-		{
-			_seed = (int) GD.Randi();
-			Generate();
-			return;
-		}
+		// if (_mapLandPercentage < _minMapLandPercentage)
+		// {
+		// 	_seed = (int) GD.Randi();
+		// 	Generate();
+		// 	return;
+		// }
+
 		if (_applyCellularAutomata)
 			ApplyCellularAutomata();
 	}
@@ -254,12 +259,23 @@ public partial class MapGenerator : Node
 	private void ComputeNoiseMap()
 	{
 		_noiseMap = new float[_mapWidth, _mapHeight];
+
+		int cx = _mapWidth / 2;
+		int cy = _mapHeight / 2;
+		float offset = 0;
+		float value = 0;
+		while (value <= _grassHeight)
+		{
+			value = _noise.GetNoise2D(cx + offset, cy + offset);
+			offset += _scale;
+		}
+
 		for (int y = 0; y < _mapHeight; ++y)
 		{
 			for (int x = 0; x < _mapWidth; ++x)
 			{
-				float sampleX = x / _scale;
-				float sampleY = y / _scale;
+				float sampleX = (x + cx) / _scale + offset;
+				float sampleY = (y + cy) / _scale + offset;
 				
 				float noise = _noise.GetNoise2D(sampleX, sampleY);
 				_noiseMap[x, y] = (noise + 1f) / 2f;
@@ -269,19 +285,54 @@ public partial class MapGenerator : Node
 
 	private void ApplyFalloffMap()
 	{
-		for (int y = 0; y < _mapHeight; ++y)
+		if (_circularFalloff)
 		{
-			for (int x = 0; x < _mapWidth; ++x)
+			string msg = "";
+
+			int cx = _mapWidth / 2;
+			int cy = _mapHeight / 2;
+
+			float radiusDist = Mathf.Sqrt(2 * _circularFalloffRadius * _circularFalloffRadius);
+			float maxDist = Mathf.Sqrt(cx * cx + cy * cy) - radiusDist;
+			radiusDist /= Mathf.Sqrt(cx * cx + cy * cy);
+			GD.Print(radiusDist);
+			for (int y = 0; y < _mapHeight; ++y)
 			{
-				float xDist = Mathf.Min(x, _mapWidth - x - 1);
-				float yDist = Mathf.Min(y, _mapHeight - y - 1);
+				for (int x = 0; x < _mapWidth; ++x)
+				{
+					float dx = Mathf.Abs(cx - x - 1);
+					float dy = Mathf.Abs(cy - y - 1);
+				
+					float dist = Mathf.Sqrt(dx * dx + dy * dy) / maxDist;
+					dist = Mathf.Clamp(dist - radiusDist, 0f, 1f);
+					float falloff = Mathf.Pow(Mathf.Clamp(dist, 0f, 1f), _edgeFalloff);
+					
+					_noiseMap[x, y] = Mathf.Clamp(_noiseMap[x,y] - falloff, 0f, 1f);
 
-				float minDist = Mathf.Min(xDist, yDist);
+					msg += $"{falloff:F2} ";
+				}
 
-				float edgeDist = 2f * minDist / (Mathf.Max(_mapWidth, _mapHeight) * 0.5f);
-				float falloff = Mathf.Pow(1f - Mathf.Clamp(edgeDist, 0f, 1f), _edgeFalloff);
+				msg += "\n";
+			}
 
-				_noiseMap[x, y] = Mathf.Clamp(_noiseMap[x,y] - falloff, 0f, 1f);
+			GD.Print(msg);
+		}
+		else
+		{
+			for (int y = 0; y < _mapHeight; ++y)
+			{
+				for (int x = 0; x < _mapWidth; ++x)
+				{
+					float xDist = Mathf.Min(x, _mapWidth - x - 1);
+					float yDist = Mathf.Min(y, _mapHeight - y - 1);
+
+					float minDist = Mathf.Min(xDist, yDist);
+
+					float edgeDist = 2f * minDist / (Mathf.Max(_mapWidth, _mapHeight) * 0.5f);
+					float falloff = Mathf.Pow(1f - Mathf.Clamp(edgeDist, 0f, 1f), _edgeFalloff);
+
+					_noiseMap[x, y] = Mathf.Clamp(_noiseMap[x,y] - falloff, 0f, 1f);
+				}
 			}
 		}
 	}
