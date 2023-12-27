@@ -4,5 +4,5 @@
 
 [resource]
 script = ExtResource("1_f6tyt")
-LowRes = Vector2i(320, 180)
-HighRes = Vector2i(1280, 702)
+LowRes = Vector2i(640, 360)
+HighRes = Vector2i(1280, 720)

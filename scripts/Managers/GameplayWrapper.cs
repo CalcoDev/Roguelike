@@ -1,3 +1,4 @@
+using CalcopodsViewports;
 using Godot;
 
 namespace Roguelike.Managers;
@@ -5,8 +6,9 @@ namespace Roguelike.Managers;
 public partial class GameplayWrapper : Node2D
 {
 	private SubViewport _viewport;
+	// private ViewportSettings _settings;
 
-    public override void _EnterTree()
+ public override void _EnterTree()
     {
 		_viewport = GetNode<SubViewport>("%SubViewport");
 
@@ -25,5 +27,11 @@ public partial class GameplayWrapper : Node2D
 	{
 		_viewport.GetChild(0).QueueFree();
 		_viewport.AddChild(scene.Instantiate());
+	}
+
+	public void InitSettings(ViewportSettings settings)
+	{
+		// _settings = settings;
+		// _viewport.Size = _settings.LowRes;
 	}
 }

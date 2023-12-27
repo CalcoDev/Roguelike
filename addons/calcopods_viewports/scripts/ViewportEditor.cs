@@ -35,9 +35,11 @@ public partial class ViewportEditor : Control
 	private void HandleApplySettings()
 	{
 		string path = _pathInput.Text;
-		ViewportSettings settings = ResourceLoader.Load<ViewportSettings>(path);
+		ViewportSettings settings = (ViewportSettings) ResourceLoader.Load<Resource>(path);
 		
 		// TODO(calco): later
+		ProjectSettings.SetSetting("display/window/size/viewport_width", settings.HighRes.X);
+		ProjectSettings.SetSetting("display/window/size/viewport_height", settings.HighRes.Y);
 	}
 
     private void HandleItemSelected(long index)

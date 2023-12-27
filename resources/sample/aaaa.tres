@@ -1,8 +1,0 @@
-[gd_resource type="Resource" script_class="ViewportSettings" load_steps=2 format=3 uid="uid://drtwabhxuci35"]
-
-[ext_resource type="Script" path="res://addons/calcopods_viewports/scripts/ViewportSettings.cs" id="1_phmdi"]
-
-[resource]
-script = ExtResource("1_phmdi")
-LowRes = Vector2i(0, 0)
-HighRes = Vector2i(0, 0)

@@ -1,8 +1,0 @@
-[gd_resource type="Resource" script_class="ViewportSettings" load_steps=2 format=3 uid="uid://cmkry21dkqgy7"]
-
-[ext_resource type="Script" path="res://addons/calcopods_viewports/scripts/ViewportSettings.cs" id="1_aualc"]
-
-[resource]
-script = ExtResource("1_aualc")
-LowRes = Vector2i(234, 3242)
-HighRes = Vector2i(234, 234)
