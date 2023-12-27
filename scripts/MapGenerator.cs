@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -33,6 +34,11 @@ public partial class MapGenerator : Node
 	[Export] private int _mapWidth;
 	[Export] private int _mapHeight;
 	[Export] private float _minMapLandPercentage;
+
+	[ExportGroup("Random Walker Settings")]
+	[Export] private int _walkerCount;
+	[Export] private int _walkerSteps;
+	[Export] private float _walkerDirChanceChance;
 
 	[ExportGroup("Noise Settings")]
 	[Export] private int _seed;
@@ -86,23 +92,8 @@ public partial class MapGenerator : Node
             Seed = _seed
         };
 
-		ComputeNoiseMap();
-
-		if (_applyFalloff)
-			ApplyFalloffMap();
-
-		ComputeMap();
-	
-		if (_mapLandPercentage < _minMapLandPercentage)
-		{
-			// TODO(calco): Probably apply some smart stuff, for now regenerate with diff seed
-			_seed = (int) GD.Randi();
-			Generate();
-			return;
-		}
-		
-		if (_applyCellularAutomata)
-			ApplyCellularAutomata();
+		GenerateBasePerlin();
+		// GenerateBaseRandomWalk();
 
 		// Split in regions and determine if and where to place
 		// marsh and stone
@@ -125,6 +116,73 @@ public partial class MapGenerator : Node
 				_tilemap.SetCell(layer, pos, tilesetSource, atlasCoords);
 			}
 		}
+	}
+
+	private void GenerateBasePerlin()
+	{
+		ComputeNoiseMap();
+		if (_applyFalloff)
+			ApplyFalloffMap();
+		ComputeMap();
+		// TODO(calco): Probably apply some smart stuff, for now regenerate with diff seed
+		if (_mapLandPercentage < _minMapLandPercentage)
+		{
+			_seed = (int) GD.Randi();
+			Generate();
+			return;
+		}
+		if (_applyCellularAutomata)
+			ApplyCellularAutomata();
+	}
+
+	private void GenerateBaseRandomWalk()
+	{
+		_map = new int[_mapWidth, _mapHeight];
+		for (int y = 0; y < _mapHeight; ++y)
+		{
+			for (int x = 0; x < _mapWidth; ++x)
+				_map[x, y] = TileTypes.Water;
+		}
+
+		// TODO(calco): Some land percentage thing.
+		// Start
+		List<Vector2I> positions = new();
+
+		int walkerX = _mapWidth / 2;
+		int walkerY = _mapHeight / 2;
+		for (int _w = 0; _w < _walkerCount; ++_w)
+		{
+			int x = walkerX;
+			int y = walkerY;
+			int remainingSteps = _walkerSteps;
+			Vector2I dir = GetRandomDir();
+
+			while (remainingSteps > 0 && IsInBounds(x, y))
+			{
+				positions.Add(new Vector2I(x, y));
+				_map[x, y] = TileTypes.Grass;
+
+				float changeDir = GD.Randf();
+				if (changeDir < _walkerDirChanceChance)
+					dir = GetRandomDir();
+				
+				x += dir.X;
+				y += dir.Y;
+				remainingSteps -= 1;
+			}
+
+			Vector2I pos = positions[(int)(GD.Randi() % positions.Count)];
+			walkerX = pos.X;
+			walkerY = pos.Y;
+		}
+
+		if (_applyCellularAutomata)
+			ApplyCellularAutomata();
+	}
+
+	private bool IsInBounds(int x, int y)
+	{
+		return x >= 0 && x < _mapWidth && y >= 0 && y < _mapHeight;
 	}
 	
 	private void ComputeNoiseMap()
@@ -172,16 +230,16 @@ public partial class MapGenerator : Node
 		{
 			for (int x = 0; x < _mapWidth; ++x)
 			{
-				int tileType = TileTypes.Water;
-				float v = _noiseMap[x, y];
-				if (v < _sandHeight)
-					tileType = TileTypes.Water;
-				else if (v < _grassHeight)
-					tileType = TileTypes.Sand;
-				else
-					tileType = TileTypes.Grass;
+                float v = _noiseMap[x, y];
+                int tileType;
+                if (v < _sandHeight)
+                    tileType = TileTypes.Water;
+                else if (v < _grassHeight)
+                    tileType = TileTypes.Sand;
+                else
+                    tileType = TileTypes.Grass;
 
-				_map[x, y] = tileType;
+                _map[x, y] = tileType;
 				if (!TileTypes.IsLiquid[tileType])
 					_mapLandPercentage += squarePercentage;
 			}
@@ -245,6 +303,17 @@ public partial class MapGenerator : Node
 			TileTypes.Stone => new Vector2I(0, 1),
 			TileTypes.Marsh => new Vector2I(0, 2),
 			_ => Vector2I.Zero,
+		};
+	}
+
+	private static Vector2I GetRandomDir()
+	{
+		return (GD.Randi() % 4) switch {
+			0 => Vector2I.Up,
+			1 => Vector2I.Down,
+			2 => Vector2I.Right,
+			3 => Vector2I.Left,
+			_ => Vector2I.Up
 		};
 	}
 }
