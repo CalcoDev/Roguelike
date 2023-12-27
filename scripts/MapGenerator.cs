@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Security.Cryptography;
 using System.Xml;
 using Godot;
 using Godot.NativeInterop;
@@ -92,8 +93,9 @@ public partial class MapGenerator : Node
             Seed = _seed
         };
 
-		GenerateBasePerlin();
+		// GenerateBasePerlin();
 		// GenerateBaseRandomWalk();
+		GenerateBaseDLA();
 
 		// Split in regions and determine if and where to place
 		// marsh and stone
@@ -174,6 +176,70 @@ public partial class MapGenerator : Node
 			Vector2I pos = positions[(int)(GD.Randi() % positions.Count)];
 			walkerX = pos.X;
 			walkerY = pos.Y;
+		}
+
+		if (_applyCellularAutomata)
+			ApplyCellularAutomata();
+	}
+
+	private void GenerateBaseDLA()
+	{
+		_map = new int[_mapWidth, _mapHeight];
+		int y;
+		int x;
+		for (y = 0; y < _mapHeight; ++y)
+		{
+			for (x = 0; x < _mapWidth; ++x)
+				_map[x, y] = TileTypes.Water;
+		}
+
+		// Init cluster
+		int cX = _mapWidth / 2;
+		int cY = _mapHeight / 2;
+
+		// _map[cX, cY] = TileTypes.Grass;
+		// _map[cX - 1, cY] = TileTypes.Grass;
+		// _map[cX + 1, cY] = TileTypes.Grass;
+		// _map[cX, cY + 1] = TileTypes.Grass;
+		// _map[cX, cY - 1] = TileTypes.Grass;
+
+		_mapLandPercentage = 0;
+		GenerateBaseRandomWalk();
+
+		float squarePercentage = 1f / (_mapWidth * _mapHeight);
+		// _mapLandPercentage = _mapLandPercentage;
+
+		Vector2I vec = GetRandomMapPos();
+		x = vec.X;
+		y = vec.Y;
+		vec = GetRandomDir();
+		while (_mapLandPercentage < _minMapLandPercentage)
+		{
+			x += vec.X;
+			y += vec.Y;
+
+			float chance = GD.Randf();
+			if (chance < _walkerDirChanceChance)
+				vec = GetRandomDir();
+
+			if (!IsInBounds(x, y))
+			{
+				vec = GetRandomMapPos();
+				x = vec.X;
+				y = vec.Y;
+				vec = GetRandomDir();
+				continue;
+			}
+
+			if (_map[x, y] != TileTypes.Water)
+			{
+				_map[x - vec.X, y - vec.Y] = TileTypes.Grass;
+				vec = GetRandomMapPos();
+				x = vec.X;
+				y = vec.Y;
+				vec = GetRandomDir();
+				_mapLandPercentage += squarePercentage;
+			}
 		}
 
 		if (_applyCellularAutomata)
@@ -315,5 +381,13 @@ public partial class MapGenerator : Node
 			3 => Vector2I.Left,
 			_ => Vector2I.Up
 		};
+	}
+
+	private Vector2I GetRandomMapPos()
+	{
+		return new Vector2I(
+			(int)(GD.Randi() % _mapWidth),
+			(int)(GD.Randi() % _mapHeight)
+		);
 	}
 }
