@@ -1,11 +1,15 @@
 
 using CalcopodsViewports;
 using Godot;
+using Roguelike.Components;
 
 namespace Roguelike.Managers;
 
 public partial class Game : Node 
 {
+    public static Game Instance { get; private set; }
+    public Camera Camera { get; set; }
+
     [ExportGroup("Resources")]
     [Export] private PackedScene _gameplayWrapperScene;
 
@@ -15,9 +19,18 @@ public partial class Game : Node
     // Things
     private GameplayWrapper _gameplayWrapper;
 
+
     // Lifecycle
     public override void _EnterTree()
     {
+        if (Instance == null)
+            Instance = this;
+        else
+        {
+            GD.PrintErr("ERROR: Game manager already exists!");
+            QueueFree();
+        }
+        
         // _gameplayWrapper = _gameplayWrapperScene.Instantiate<GameplayWrapper>();
         // _gameplayWrapper.InitSettings(_viewportSettings);
         // AddChild(_gameplayWrapper);

@@ -1,8 +1,9 @@
-[gd_scene load_steps=6 format=3 uid="uid://dk2ka1k0kvw72"]
+[gd_scene load_steps=7 format=3 uid="uid://dk2ka1k0kvw72"]
 
 [ext_resource type="Script" path="res://scripts/MapGenerator.cs" id="1_lhso4"]
 [ext_resource type="Texture2D" uid="uid://7147d7bxqexx" path="res://assets/tilesets/prototype_tileset.png" id="2_wjs5r"]
-[ext_resource type="Texture2D" uid="uid://3gi4b6jngq0q" path="res://assets/entities/player/player.png" id="3_wvwxm"]
+[ext_resource type="PackedScene" uid="uid://dwlba7fg75u3b" path="res://scenes/Prefabs/Entities/player.tscn" id="3_8hqdv"]
+[ext_resource type="Script" path="res://scripts/Components/Camera.cs" id="4_bc7x1"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_h6xpa"]
 texture = ExtResource("2_wjs5r")
@@ -19,16 +20,12 @@ sources/0 = SubResource("TileSetAtlasSource_h6xpa")
 
 [node name="Debug" type="Node2D"]
 
-[node name="Camera2D" type="Camera2D" parent="."]
-position = Vector2(320, 180)
-
 [node name="MapGenerator" type="Node" parent="." node_paths=PackedStringArray("_tilemap")]
 script = ExtResource("1_lhso4")
 _lacunarity = 6.0
 _octaves = 2
 _scale = 0.5
 _edgeFalloff = 5.0
-_landHeight = 0.5
 _mapWidth = 80
 _mapHeight = 40
 _tilemap = NodePath("../TileMap")
@@ -39,6 +36,7 @@ rendering_quadrant_size = 12
 format = 2
 layer_0/name = "Foreground"
 
-[node name="Sprite" type="Sprite2D" parent="."]
-position = Vector2(290, 178)
-texture = ExtResource("3_wvwxm")
+[node name="Player" parent="." instance=ExtResource("3_8hqdv")]
+
+[node name="Camera2D" type="Camera2D" parent="Player"]
+script = ExtResource("4_bc7x1")

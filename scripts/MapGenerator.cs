@@ -1,7 +1,3 @@
-using System;
-using System.Reflection.Metadata;
-using System.Reflection.Metadata.Ecma335;
-using System.Threading;
 using Godot;
 
 namespace Roguelike;
@@ -70,7 +66,15 @@ public partial class MapGenerator : Node
 		ApplyFalloffMap();
 		ComputeMap();
 
-		_map[_mapWidth-1, _mapHeight-1] = TileTypes.Marsh;
+		// Split in regions and determine if and where to place
+		// marsh and stone
+
+		// Determine spawn point
+
+		// Place chests
+		// Place props in each area
+
+		// Place mobs
 
 		int layer = 0;
 		int tilesetSource = 0;
@@ -84,15 +88,6 @@ public partial class MapGenerator : Node
 			}
 		}
 
-		string msg = "";
-		for (int y = 0; y < _mapHeight; ++y)
-		{
-			for (int x = 0; x < _mapWidth; ++x)
-				msg += $"{_noiseMap[x, y]:F3} ";
-			msg += "\n";
-		}
-		GD.Print(msg);
-		
 		_seed = (int)GD.Randi();
 	}
 	
@@ -139,8 +134,12 @@ public partial class MapGenerator : Node
 			for (int x = 0; x < _mapWidth; ++x)
 			{
 				int tileType = TileTypes.Water;
-				
-				if (_noiseMap[x, y] > _grassHeight)
+				float v = _noiseMap[x, y];
+				if (v < _sandHeight)
+					tileType = TileTypes.Water;
+				else if (v < _grassHeight)
+					tileType = TileTypes.Sand;
+				else
 					tileType = TileTypes.Grass;
 
 				_map[x, y] = tileType;
